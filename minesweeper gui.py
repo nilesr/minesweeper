@@ -17,7 +17,16 @@ import tkinter
 import tkinter.messagebox
 #import traceback
 # Functions
-def PrintBoard(final = False):
+def is_out_of_bounds(x, y):
+	return x == -1 or x == MaxX or y == -1 or y == MaxY
+def get_surrounding(x, y):
+	result = []
+	for i in [x+1,y],[x+1,y+1],[x+1,y-1],[x-1,y],[x-1,y+1],[x-1,y-1],[x,y+1],[x,y-1]: # For each of the 8 surrounding cells
+		if not is_out_of_bounds(*i):
+			result.append(i)
+	return result
+
+def displayBoard(final = False):
 	global master
 	# Print the header
 	if TotalMarked > NumMines:
@@ -64,21 +73,17 @@ def reveal(x,y,manual = False):
 	master[x][y][2] = 1 # Reveal it
 	if master[x][y][0] == 1: # If it's a mine
 		tkinter.messagebox.showinfo("Game over","Game over! Better luck next time")
-		PrintBoard(True)
+		displayBoard(True)
 		return False
 	surroundingMarkedMines = 0
-	for i in [x+1,y],[x+1,y+1],[x+1,y-1],[x-1,y],[x-1,y+1],[x-1,y-1],[x,y+1],[x,y-1]: # For each of the 8 surrounding cells
-		if i[0] == -1 or i[0] == MaxX or i[1] == -1 or i[1] == MaxY:
-			continue
+	for i in get_surrounding(x, y):
 		if master[i[0]][i[1]][3] == 1: # If they are marked
 			surroundingMarkedMines += 1 # Increase surroundingMarkedMines by 1
 	if surroundingMarkedMines == master[x][y][1]: # If surroundingMarkedMines is equal to the number being displayed
-		for i in [x+1,y],[x+1,y+1],[x+1,y-1],[x-1,y],[x-1,y+1],[x-1,y-1],[x,y+1],[x,y-1]: # For each of the 8 surrounding cells
-			if i[0] == -1 or i[0] == MaxX or i[1] == -1 or i[1] == MaxY:
-				continue
+		for i in get_surrounding(x, y):
 			if master[i[0]][i[1]][3] == 0: # If that cell has not been marked
 				reveal(i[0],i[1]) # Reveal that square
-	PrintBoard()
+	displayBoard()
 def mark(x,y):
 	global TotalMarked
 	if master[x][y][2] == 1:
@@ -90,7 +95,7 @@ def mark(x,y):
 	else:
 		TotalMarked -= 1
 		master[x][y][3] = 0
-	PrintBoard()
+	displayBoard()
 def StartGame():
 	global master, MaxX, MaxY, NumMines, TimerStart
 	while(True):
@@ -151,16 +156,14 @@ def StartGame():
 	for x in range(0,MaxX):
 		for y in range(0,MaxY):
 			numberToStore = 0
-			for i in [x+1,y],[x+1,y+1],[x+1,y-1],[x-1,y],[x-1,y+1],[x-1,y-1],[x,y+1],[x,y-1]:
-				if i[0] == -1 or i[0] == MaxX or i[1] == -1 or i[1] == MaxY:
-					continue
+			for i in get_surrounding(x, y):
 				if master[i[0]][i[1]][0] == 1:
 					numberToStore += 1
 			master[x][y][1] = numberToStore
 
 	#window.bind("<Button-3>",mark)
 	reveal(StartingX,StartingY) # Reveal it
-	PrintBoard()
+	displayBoard()
 def CheckIfGameOver():
 	# Check if the game is over here
 	TotalRevealedTiles = 0
@@ -170,7 +173,7 @@ def CheckIfGameOver():
 				TotalRevealedTiles += 1
 	if TotalRevealedTiles == MaxX*MaxY - NumMines:
 		tkinter.messagebox.showinfo("Woohoo","You win! All mines found" + "\n\n" + "Your time: " + str(int(time.time() - TimerStart)))
-		PrintBoard(True)
+		displayBoard(True)
 	MarkedCorrect = 0
 	MarkedIncorrect = 0
 	for x in range(0,MaxX):
@@ -182,7 +185,7 @@ def CheckIfGameOver():
 					MarkedIncorrect += 1
 	if MarkedCorrect == NumMines and MarkedIncorrect == 0:
 		tkinter.messagebox.showinfo("Woohoo","You win! All mines found" + "\n\n" + "Your time: " + str(int(time.time() - TimerStart)))
-		PrintBoard(True)
+		displayBoard(True)
 
 
 # Variables
